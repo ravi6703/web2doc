@@ -384,7 +384,7 @@
             <div class="logo">
                 <span class="icon">&#127760;</span>
                 <h1>Web2Doc</h1>
-                <p>Paste any website URL &mdash; get a formatted Word document</p>
+                <p>Paste any website URL &mdash; crawls all pages into one Word document</p>
             </div>
 
             <div class="input-wrapper">
@@ -400,6 +400,15 @@
                 <label class="option-label">
                     <input type="checkbox" id="optLinks" checked> Include links
                 </label>
+                <label class="option-label">
+                    <span style="color:#9ca3af;font-size:13px;">Max pages:</span>
+                    <select id="maxPages" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;padding:4px 8px;font-size:13px;font-family:inherit;">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="30">30</option>
+                    </select>
+                </label>
             </div>
 
             <div class="progress-area" id="progressArea">
@@ -408,8 +417,8 @@
                 </div>
                 <div class="progress-steps" id="progressSteps">
                     <div class="step" data-step="0"><span class="step-dot"></span> Connecting to website...</div>
-                    <div class="step" data-step="1"><span class="step-dot"></span> Downloading page content...</div>
-                    <div class="step" data-step="2"><span class="step-dot"></span> Extracting text, images &amp; links...</div>
+                    <div class="step" data-step="1"><span class="step-dot"></span> Crawling internal pages...</div>
+                    <div class="step" data-step="2"><span class="step-dot"></span> Extracting text, images &amp; links from all pages...</div>
                     <div class="step" data-step="3"><span class="step-dot"></span> Generating Word document...</div>
                     <div class="step" data-step="4"><span class="step-dot"></span> Preparing download...</div>
                 </div>
@@ -420,7 +429,11 @@
             <div class="result-area" id="resultArea">
                 <div class="result-card">
                     <div class="result-title">&#10003; <span id="resultTitle">Extraction Complete!</span></div>
-                    <div class="stats-grid">
+                    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                        <div class="stat-box">
+                            <div class="stat-num" id="statPages">0</div>
+                            <div class="stat-label">Pages</div>
+                        </div>
                         <div class="stat-box">
                             <div class="stat-num" id="statSections">0</div>
                             <div class="stat-label">Sections</div>
@@ -471,6 +484,7 @@
 
             const includeImages = document.getElementById('optImages').checked;
             const includeLinks = document.getElementById('optLinks').checked;
+            const maxPages = parseInt(document.getElementById('maxPages').value);
 
             // Reset
             errorArea.classList.remove('active');
@@ -497,7 +511,7 @@
                 const resp = await fetch('/api/extract', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, includeImages, includeLinks })
+                    body: JSON.stringify({ url, includeImages, includeLinks, maxPages })
                 });
 
                 clearInterval(stepInterval);
@@ -513,6 +527,7 @@
 
                 // Show results
                 document.getElementById('resultTitle').textContent = data.title || 'Extraction Complete!';
+                document.getElementById('statPages').textContent = data.totalPages || data.pagesCrawled || 1;
                 document.getElementById('statSections').textContent = data.sections;
                 document.getElementById('statImages').textContent = data.images;
                 document.getElementById('statLinks').textContent = data.links;
